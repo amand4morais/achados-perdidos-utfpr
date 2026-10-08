@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
+from django.urls import reverse
 
 from .validadores import validar_imagem
 
@@ -61,6 +62,9 @@ class Item(models.Model):
         if self._state.adding and not self.status:
             self.status = self.status_inicial_para(self.tipo)
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse("detalhes", args=[self.pk])
 
     def registrar_historico(self, usuario, status_anterior, observacao=""):
         return HistoricoStatus.objects.create(

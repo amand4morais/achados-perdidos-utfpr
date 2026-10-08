@@ -4,7 +4,7 @@ from django import forms
 
 from contas.forms import CamposBootstrapMixin
 
-from .models import Item
+from .models import Comentario, Item
 
 EXTENSOES_PERMITIDAS = {".jpg", ".jpeg", ".png"}
 TIPOS_PERMITIDOS = {"image/jpeg", "image/png", "image/pjpeg"}
@@ -81,3 +81,18 @@ class FormularioFiltro(forms.Form):
         choices=[("", "Todos")] + list(Item.Status.choices),
         widget=forms.Select(attrs={"class": "form-select"}),
     )
+
+
+class FormularioComentario(CamposBootstrapMixin, forms.ModelForm):
+    class Meta:
+        model = Comentario
+        fields = ["texto"]
+        widgets = {
+            "texto": forms.Textarea(attrs={"rows": 4, "maxlength": 1000, "placeholder": "Escreva sua mensagem"}),
+        }
+
+    def clean_texto(self):
+        texto = self.cleaned_data["texto"].strip()
+        if not texto:
+            raise forms.ValidationError("Escreva alguma coisa antes de salvar.")
+        return texto

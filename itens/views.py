@@ -6,8 +6,8 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .forms import FormularioEdicaoItem, FormularioFiltro, FormularioItem
-from .models import Item
+from .forms import FormularioComentario, FormularioEdicaoItem, FormularioFiltro, FormularioItem
+from .models import Comentario, Item
 
 ITENS_POR_PAGINA = 12
 
@@ -49,12 +49,47 @@ def novo_registro(request):
     return render(request, "itens/novo_registro.html", {"form": form})
 
 
-def detalhes(request, pk):
-    item = get_object_or_404(Item.objects.select_related("autor"), pk=pk)
+def renderizar_detalhes(request, item, form_comentario=None, abrir_modal=""):
     return render(request, "itens/detalhes.html", {
         "item": item,
         "pode_editar": item.pode_editar(request.user),
+        "eh_admin": request.user.is_authenticated and request.user.eh_admin,
+        "comentarios": item.comentarios.select_related("autor"),
+        "form_comentario": form_comentario or FormularioComentario(),
+        "abrir_modal": abrir_modal,
     })
+
+
+def detalhes(request, pk):
+    item = get_object_or_404(Item.objects.select_related("autor"), pk=pk)
+    return renderizar_detalhes(request, item)
+
+
+@login_required
+@require_POST
+def comentar(request, pk):
+    item = get_object_or_404(Item.objects.select_related("autor"), pk=pk)
+    form = FormularioComentario(request.POST)
+    if not form.is_valid():
+        return renderizar_detalhes(request, item, form_comentario=form, abrir_modal="modal-comentario")
+    comentario = form.save(commit=False)
+    comentario.item = item
+    comentario.autor = request.user
+    comentario.save()
+    messages.success(request, "Comentário adicionado.")
+    return redirect(f"{item.get_absolute_url()}#comentario-{comentario.pk}")
+
+
+@login_required
+@require_POST
+def excluir_comentario(request, pk):
+    comentario = get_object_or_404(Comentario, pk=pk)
+    if not request.user.eh_admin:
+        raise PermissionDenied("Somente administradores podem moderar comentários.")
+    item = comentario.item
+    comentario.delete()
+    messages.success(request, "Comentário removido.")
+    return redirect(f"{item.get_absolute_url()}#comentarios")
 
 
 @login_required
