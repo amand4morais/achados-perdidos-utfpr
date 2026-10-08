@@ -15,7 +15,7 @@ Não é preciso instalar banco de dados nem Node.js.
 ## Instalação e execução (Windows, PowerShell)
 
 ```powershell
-git clone https://github.com/SEU-USUARIO/achados-perdidos.git
+git clone https://github.com/amand4morais/achados-perdidos-utfpr.git
 cd achados-perdidos
 python -m venv .venv
 .venv\Scripts\activate
