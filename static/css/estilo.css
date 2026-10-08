@@ -114,6 +114,123 @@ a {
     color: #5c5c58;
 }
 
+.selo {
+    display: inline-block;
+    padding: .2rem .6rem;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.selo-perdido {
+    background: #fde2e1;
+    color: #8a1c14;
+}
+
+.selo-encontrado {
+    background: #dcefdc;
+    color: #1e5a24;
+}
+
+.selo-em_verificacao {
+    background: #fff1b8;
+    color: #5c4a00;
+}
+
+.selo-devolvido {
+    background: #dbe7f6;
+    color: #1f4471;
+}
+
+.selo-arquivado {
+    background: #e7e7e4;
+    color: #4a4a46;
+}
+
+.cartao-item {
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow .15s ease, transform .15s ease;
+}
+
+.cartao-item:hover,
+.cartao-item:focus-within {
+    box-shadow: 0 .4rem 1rem rgba(0, 0, 0, .08);
+    transform: translateY(-2px);
+}
+
+.cartao-item-foto {
+    object-fit: cover;
+    background: var(--cinza-borda);
+}
+
+.cartao-item-link {
+    color: var(--preto);
+    text-decoration: none;
+}
+
+.cartao-item-link:hover {
+    text-decoration: underline;
+}
+
+.foto-detalhe {
+    width: 100%;
+    max-height: 480px;
+    object-fit: contain;
+    background: var(--cinza-fundo);
+    border-radius: .5rem;
+}
+
+.foto-miniatura {
+    max-width: 200px;
+    max-height: 150px;
+    object-fit: cover;
+    border-radius: .375rem;
+    border: 1px solid var(--cinza-borda);
+}
+
+.descricao-item {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.dados-item {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: .35rem 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.dados-item dt {
+    font-weight: 600;
+    color: #5c5c58;
+}
+
+.dados-item dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.pagination {
+    --bs-pagination-color: var(--preto);
+    --bs-pagination-hover-color: var(--preto);
+    --bs-pagination-active-bg: var(--preto);
+    --bs-pagination-active-border-color: var(--preto);
+    --bs-pagination-active-color: var(--amarelo);
+    --bs-pagination-focus-box-shadow: 0 0 0 .2rem var(--amarelo);
+}
+
+.opcoes-tipo .btn {
+    --bs-btn-hover-bg: #ecece7;
+    --bs-btn-hover-color: var(--preto);
+    --bs-btn-hover-border-color: var(--preto);
+    --bs-btn-active-bg: var(--preto);
+    --bs-btn-active-color: var(--amarelo);
+    --bs-btn-active-border-color: var(--preto);
+    min-width: 8rem;
+}
+
 .rodape {
     background: var(--preto);
     color: #cfcfca;

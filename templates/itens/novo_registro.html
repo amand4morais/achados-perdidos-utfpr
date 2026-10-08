@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Novo Registro{% endblock %}
+
+{% block conteudo %}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <a href="{% url 'inicio' %}" class="btn btn-outline-dark">Voltar</a>
+                <h1 class="h3 mb-0">Novo Registro</h1>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="cartao p-4" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for erro in form.non_field_errors %}{{ erro }}{% endfor %}
+                    </div>
+                {% endif %}
+
+                <fieldset class="mb-3">
+                    <legend class="form-label fs-6">Tipo <span class="text-danger" aria-hidden="true">*</span></legend>
+                    <div class="d-flex gap-2 flex-wrap opcoes-tipo">
+                        {% for opcao in form.tipo %}
+                            <input type="radio" class="btn-check" name="{{ opcao.data.name }}" id="{{ opcao.id_for_label }}" value="{{ opcao.data.value }}" autocomplete="off" required {% if opcao.data.selected %}checked{% endif %}>
+                            <label class="btn btn-outline-dark" for="{{ opcao.id_for_label }}">{{ opcao.choice_label }}</label>
+                        {% endfor %}
+                    </div>
+                    <div class="form-text">Perdido: você perdeu o item. Encontrado: você achou um item de outra pessoa.</div>
+                    {% for erro in form.tipo.errors %}
+                        <div class="invalid-feedback d-block">{{ erro }}</div>
+                    {% endfor %}
+                </fieldset>
+
+                {% include "parciais/campo.html" with campo=form.titulo %}
+                {% include "parciais/campo.html" with campo=form.descricao %}
+                {% include "parciais/campo.html" with campo=form.categoria %}
+                {% include "parciais/campo_local.html" with campo=form.local %}
+                {% include "parciais/campo_foto.html" with campo=form.foto %}
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-amarelo px-4">Cadastrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'js/formulario-item.js' %}"></script>
+{% endblock %}

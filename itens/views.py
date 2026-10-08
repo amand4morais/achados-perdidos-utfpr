@@ -1,0 +1,89 @@
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
+
+from .forms import FormularioEdicaoItem, FormularioFiltro, FormularioItem
+from .models import Item
+
+ITENS_POR_PAGINA = 12
+
+
+def inicio(request):
+    itens = Item.objects.select_related("autor")
+    filtro = FormularioFiltro(request.GET or None)
+    if filtro.is_valid():
+        if filtro.cleaned_data["categoria"]:
+            itens = itens.filter(categoria=filtro.cleaned_data["categoria"])
+        if filtro.cleaned_data["status"]:
+            itens = itens.filter(status=filtro.cleaned_data["status"])
+    filtrando = filtro.is_bound and filtro.is_valid() and any(filtro.cleaned_data.values())
+
+    pagina = Paginator(itens, ITENS_POR_PAGINA).get_page(request.GET.get("page"))
+    return render(request, "inicio.html", {
+        "pagina": pagina,
+        "filtro": filtro,
+        "filtrando": filtrando,
+        "sistema_vazio": not pagina.object_list and not Item.objects.exists(),
+    })
+
+
+@login_required
+def novo_registro(request):
+    if request.method == "POST":
+        form = FormularioItem(request.POST, request.FILES)
+        if form.is_valid():
+            with transaction.atomic():
+                item = form.save(commit=False)
+                item.autor = request.user
+                item.status = Item.status_inicial_para(item.tipo)
+                item.save()
+                item.registrar_historico(request.user, "", "Item cadastrado")
+            messages.success(request, "Registro cadastrado com sucesso.")
+            return redirect("inicio")
+    else:
+        form = FormularioItem()
+    return render(request, "itens/novo_registro.html", {"form": form})
+
+
+def detalhes(request, pk):
+    item = get_object_or_404(Item.objects.select_related("autor"), pk=pk)
+    return render(request, "itens/detalhes.html", {
+        "item": item,
+        "pode_editar": item.pode_editar(request.user),
+    })
+
+
+@login_required
+def editar(request, pk):
+    item = get_object_or_404(Item, pk=pk)
+    if not item.pode_editar(request.user):
+        raise PermissionDenied("Somente o autor pode editar este item.")
+
+    foto_antiga = item.foto.name
+    foto_atual_url = item.foto.url if item.foto else ""
+    if request.method == "POST":
+        form = FormularioEdicaoItem(request.POST, request.FILES, instance=item)
+        if form.is_valid():
+            item = form.save()
+            if "foto" in form.changed_data and foto_antiga and foto_antiga != item.foto.name:
+                item.foto.storage.delete(foto_antiga)
+            messages.success(request, "Registro atualizado com sucesso.")
+            return redirect("detalhes", pk=item.pk)
+    else:
+        form = FormularioEdicaoItem(instance=item)
+    return render(request, "itens/editar.html", {"form": form, "item": item, "foto_atual_url": foto_atual_url})
+
+
+@login_required
+@require_POST
+def excluir(request, pk):
+    item = get_object_or_404(Item, pk=pk)
+    if not item.pode_editar(request.user):
+        raise PermissionDenied("Somente o autor pode excluir este item.")
+    item.delete()
+    messages.success(request, "Registro excluído.")
+    return redirect("inicio")

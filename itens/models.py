@@ -62,6 +62,18 @@ class Item(models.Model):
             self.status = self.status_inicial_para(self.tipo)
         super().save(*args, **kwargs)
 
+    def registrar_historico(self, usuario, status_anterior, observacao=""):
+        return HistoricoStatus.objects.create(
+            item=self,
+            usuario=usuario,
+            status_anterior=status_anterior,
+            status_novo=self.status,
+            observacao=observacao,
+        )
+
+    def pode_editar(self, usuario):
+        return usuario.is_authenticated and usuario.pk == self.autor_id
+
     @property
     def foi_encontrado(self):
         return self.tipo == self.Tipo.ENCONTRADO

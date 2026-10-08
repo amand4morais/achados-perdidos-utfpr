@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ item.titulo }}{% endblock %}
+
+{% block conteudo %}
+    <a href="{% url 'inicio' %}" class="btn btn-outline-dark mb-3">Voltar</a>
+
+    <div class="cartao p-3 p-md-4">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <a href="{{ item.foto.url }}" target="_blank" rel="noopener">
+                    <img src="{{ item.foto.url }}" alt="Foto de {{ item.titulo }}" class="foto-detalhe">
+                </a>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-2">
+                    {% include "parciais/selo_status.html" %}
+                </div>
+                <h1 class="h3">{{ item.titulo }}</h1>
+                <p class="descricao-item">{{ item.descricao|linebreaksbr }}</p>
+
+                <dl class="dados-item">
+                    <dt>Categoria</dt>
+                    <dd>{{ item.get_categoria_display }}</dd>
+                    <dt>Tipo</dt>
+                    <dd>{{ item.get_tipo_display }}</dd>
+                    <dt>Local</dt>
+                    <dd>{{ item.local|default:"Não informado" }}</dd>
+                    <dt>Autor</dt>
+                    <dd>{{ item.autor.nome }}</dd>
+                    <dt>Cadastrado em</dt>
+                    <dd><time datetime="{{ item.criado_em|date:'c' }}">{{ item.criado_em|date:"d/m/Y" }} às {{ item.criado_em|date:"H:i" }}</time></dd>
+                    <dt>Status</dt>
+                    <dd>{{ item.get_status_display }}</dd>
+                </dl>
+
+                {% if pode_editar %}
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{% url 'editar' item.pk %}" class="btn btn-dark">Editar</a>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-excluir">Excluir</button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if pode_editar %}
+        <div class="modal fade" id="modal-excluir" tabindex="-1" aria-labelledby="titulo-modal-excluir" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <form method="post" action="{% url 'excluir' item.pk %}" class="modal-content">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h2 class="modal-title fs-5" id="titulo-modal-excluir">Excluir registro</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        Tem certeza que deseja excluir "{{ item.titulo }}"? Os comentários e o histórico também serão apagados.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Excluir</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

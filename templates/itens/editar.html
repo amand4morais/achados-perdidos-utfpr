@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Editar registro{% endblock %}
+
+{% block conteudo %}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <a href="{% url 'detalhes' item.pk %}" class="btn btn-outline-dark">Voltar</a>
+                <h1 class="h3 mb-0">Editar registro</h1>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="cartao p-4" novalidate>
+                {% csrf_token %}
+
+                {% include "parciais/campo.html" with campo=form.titulo %}
+                {% include "parciais/campo.html" with campo=form.descricao %}
+                {% include "parciais/campo.html" with campo=form.categoria %}
+                {% include "parciais/campo_local.html" with campo=form.local %}
+
+                {% if foto_atual_url %}
+                    <div class="mb-2">
+                        <span class="form-label d-block">Foto atual</span>
+                        <img src="{{ foto_atual_url }}" alt="Foto atual do item" class="foto-miniatura">
+                    </div>
+                {% endif %}
+                {% include "parciais/campo_foto.html" with campo=form.foto %}
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'detalhes' item.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-amarelo px-4">Salvar alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'js/formulario-item.js' %}"></script>
+{% endblock %}

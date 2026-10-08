@@ -1,7 +1,85 @@
 {% extends "base.html" %}
 
 {% block conteudo %}
-    <div class="caixa-vazia">
-        <p class="mb-0">Ainda não há itens cadastrados.</p>
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <h1 class="h4 mb-0">Itens mais recentes</h1>
+        {% if pagina.paginator.count %}
+            <span class="text-secondary small">{{ pagina.paginator.count }} {% if pagina.paginator.count == 1 %}item{% else %}itens{% endif %}</span>
+        {% endif %}
     </div>
+
+    <form method="get" class="cartao p-3 mb-4" aria-label="Filtrar itens">
+        <div class="row g-2 align-items-end">
+            <div class="col-sm-6 col-md-4">
+                <label for="{{ filtro.categoria.id_for_label }}" class="form-label small mb-1">Categoria</label>
+                {{ filtro.categoria }}
+            </div>
+            <div class="col-sm-6 col-md-4">
+                <label for="{{ filtro.status.id_for_label }}" class="form-label small mb-1">Status</label>
+                {{ filtro.status }}
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-amarelo flex-fill">Filtrar</button>
+                {% if filtrando %}
+                    <a href="{% url 'inicio' %}" class="btn btn-outline-secondary flex-fill">Limpar</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+
+    {% if pagina.object_list %}
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3">
+            {% for item in pagina %}
+                <div class="col">
+                    <article class="cartao cartao-item h-100">
+                        <div class="ratio ratio-4x3">
+                            <img src="{{ item.foto.url }}" alt="Foto de {{ item.titulo }}" class="cartao-item-foto"{% if forloop.counter > 4 %} loading="lazy"{% endif %}>
+                        </div>
+                        <div class="p-3">
+                            {% include "parciais/selo_status.html" %}
+                            <h2 class="h6 mt-2 mb-1">
+                                <a href="{% url 'detalhes' item.pk %}" class="stretched-link cartao-item-link">{{ item.titulo }}</a>
+                            </h2>
+                            <p class="small text-secondary mb-0">
+                                {{ item.get_categoria_display }} · <time datetime="{{ item.criado_em|date:'c' }}">{{ item.criado_em|date:"d/m/Y H:i" }}</time>
+                            </p>
+                        </div>
+                    </article>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if pagina.has_other_pages %}
+            <nav aria-label="Páginas" class="mt-4">
+                <ul class="pagination justify-content-center flex-wrap">
+                    {% if pagina.has_previous %}
+                        <li class="page-item"><a class="page-link" href="{% querystring page=pagina.previous_page_number %}">Anterior</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                    {% endif %}
+                    {% for numero in pagina.paginator.page_range %}
+                        {% if numero == pagina.number %}
+                            <li class="page-item active" aria-current="page"><span class="page-link">{{ numero }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="{% querystring page=numero %}">{{ numero }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if pagina.has_next %}
+                        <li class="page-item"><a class="page-link" href="{% querystring page=pagina.next_page_number %}">Próxima</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Próxima</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="caixa-vazia">
+            {% if sistema_vazio %}
+                <p class="mb-0">Ainda não há itens cadastrados.</p>
+            {% else %}
+                <p class="mb-2">Nenhum item encontrado com os filtros selecionados.</p>
+                <a href="{% url 'inicio' %}">Ver todos os itens</a>
+            {% endif %}
+        </div>
+    {% endif %}
 {% endblock %}
