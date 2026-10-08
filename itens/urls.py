@@ -1,6 +1,6 @@
-from django.urls import path
+from django.urls import path, re_path
 
-from . import views
+from . import api, views
 
 urlpatterns = [
     path("", views.inicio, name="inicio"),
@@ -16,4 +16,6 @@ urlpatterns = [
     path("reivindicacoes/", views.reivindicacoes, name="reivindicacoes"),
     path("reivindicacoes/<int:pk>/aprovar/", views.aprovar_reivindicacao, name="aprovar_reivindicacao"),
     path("reivindicacoes/<int:pk>/recusar/", views.recusar_reivindicacao, name="recusar_reivindicacao"),
+    re_path(r"^api/items/?$", api.lista_itens, name="api_lista_itens"),
+    re_path(r"^api/items/(?P<pk>\d+)/?$", api.detalhe_item, name="api_detalhe_item"),
 ]
