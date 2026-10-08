@@ -260,6 +260,58 @@ a {
     }
 }
 
+.painel-admin {
+    border-left: 5px solid var(--amarelo);
+}
+
+.tabela-historico th,
+.tabela-historico td {
+    padding: .6rem .9rem;
+}
+
+.tabela-historico thead th {
+    background: var(--cinza-fundo);
+    font-weight: 600;
+    font-size: .875rem;
+}
+
+@media (max-width: 575.98px) {
+    .tabela-historico thead {
+        display: none;
+    }
+
+    .tabela-historico,
+    .tabela-historico tbody,
+    .tabela-historico tr,
+    .tabela-historico td {
+        display: block;
+        width: 100%;
+    }
+
+    .tabela-historico tr {
+        border-bottom: 1px solid var(--cinza-borda);
+        padding: .5rem 0;
+    }
+
+    .tabela-historico tr:last-child {
+        border-bottom: 0;
+    }
+
+    .tabela-historico td {
+        border: 0;
+        padding: .15rem .9rem;
+        display: flex;
+        gap: .75rem;
+    }
+
+    .tabela-historico td::before {
+        content: attr(data-rotulo);
+        flex: 0 0 6.5rem;
+        font-weight: 600;
+        color: #5c5c58;
+    }
+}
+
 .rodape {
     background: var(--preto);
     color: #cfcfca;

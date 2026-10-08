@@ -40,11 +40,67 @@
                         <div class="d-flex flex-wrap gap-2">
                             <a href="{% url 'editar' item.pk %}" class="btn btn-dark">Editar</a>
                             <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-excluir">Excluir</button>
+                            {% if pode_marcar_devolvido %}
+                                <form method="post" action="{% url 'marcar_devolvido' item.pk %}" data-confirmar="Confirmar que o item foi entregue ao dono?">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-dark">Marcar como devolvido</button>
+                                </form>
+                            {% endif %}
                         </div>
                     {% endif %}
                 </div>
             </div>
         </div>
+
+        {% if eh_admin %}
+            <section class="cartao painel-admin p-3 p-md-4 mt-3" aria-labelledby="titulo-painel-status">
+                <h2 class="h6 mb-3" id="titulo-painel-status">Administração: alterar status</h2>
+                <form method="post" action="{% url 'alterar_status' item.pk %}" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-2 align-items-start">
+                        <div class="col-md-4">
+                            {% include "parciais/campo.html" with campo=form_status.status %}
+                        </div>
+                        <div class="col-md-5">
+                            {% include "parciais/campo.html" with campo=form_status.observacao %}
+                        </div>
+                        <div class="col-md-3 pt-md-4 mt-md-2">
+                            <button type="submit" class="btn btn-dark w-100">Alterar status</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        {% endif %}
+
+        <section id="historico" class="mt-4" aria-labelledby="titulo-historico">
+            <h2 class="h5 mb-3" id="titulo-historico">Histórico de status</h2>
+            <div class="cartao">
+                <table class="table table-sm align-middle mb-0 tabela-historico">
+                    <thead>
+                        <tr>
+                            <th scope="col">Data</th>
+                            <th scope="col">Alteração</th>
+                            <th scope="col">Por</th>
+                            <th scope="col">Observação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for registro in historico %}
+                            <tr>
+                                <td data-rotulo="Data"><time datetime="{{ registro.criado_em|date:'c' }}">{{ registro.criado_em|date:"d/m/Y H:i" }}</time></td>
+                                <td data-rotulo="Alteração">
+                                    <span>{% if registro.status_anterior %}{{ registro.get_status_anterior_display }} → {% endif %}<strong>{{ registro.get_status_novo_display }}</strong></span>
+                                </td>
+                                <td data-rotulo="Por"><span>{{ registro.usuario.nome|default:"Usuário removido" }}</span></td>
+                                <td data-rotulo="Observação"><span>{{ registro.observacao|default:"—" }}</span></td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" class="text-secondary">Nenhuma alteração registrada.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
         <section id="comentarios" class="mt-4" aria-labelledby="titulo-comentarios">
             <h2 class="h5 mb-3" id="titulo-comentarios">Comentários ({{ comentarios|length }})</h2>

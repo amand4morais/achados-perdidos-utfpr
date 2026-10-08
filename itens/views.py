@@ -6,7 +6,13 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .forms import FormularioComentario, FormularioEdicaoItem, FormularioFiltro, FormularioItem
+from .forms import (
+    FormularioComentario,
+    FormularioEdicaoItem,
+    FormularioFiltro,
+    FormularioItem,
+    FormularioStatus,
+)
 from .models import Comentario, Item
 
 ITENS_POR_PAGINA = 12
@@ -49,13 +55,16 @@ def novo_registro(request):
     return render(request, "itens/novo_registro.html", {"form": form})
 
 
-def renderizar_detalhes(request, item, form_comentario=None, abrir_modal=""):
+def renderizar_detalhes(request, item, form_comentario=None, form_status=None, abrir_modal=""):
     return render(request, "itens/detalhes.html", {
         "item": item,
         "pode_editar": item.pode_editar(request.user),
+        "pode_marcar_devolvido": item.pode_marcar_devolvido(request.user),
         "eh_admin": request.user.is_authenticated and request.user.eh_admin,
         "comentarios": item.comentarios.select_related("autor"),
+        "historico": item.historico.select_related("usuario"),
         "form_comentario": form_comentario or FormularioComentario(),
+        "form_status": form_status or FormularioStatus(initial={"status": item.status}),
         "abrir_modal": abrir_modal,
     })
 
@@ -122,3 +131,34 @@ def excluir(request, pk):
     item.delete()
     messages.success(request, "Registro excluído.")
     return redirect("inicio")
+
+
+@login_required
+@require_POST
+def alterar_status(request, pk):
+    item = get_object_or_404(Item.objects.select_related("autor"), pk=pk)
+    if not request.user.eh_admin:
+        raise PermissionDenied("Somente administradores podem alterar o status.")
+    form = FormularioStatus(request.POST)
+    if not form.is_valid():
+        return renderizar_detalhes(request, item, form_status=form)
+    novo_status = form.cleaned_data["status"]
+    if item.alterar_status(novo_status, request.user, form.cleaned_data["observacao"]):
+        messages.success(request, f"Status alterado para {item.get_status_display()}.")
+    else:
+        messages.info(request, "O item já estava com esse status.")
+    return redirect(f"{item.get_absolute_url()}#historico")
+
+
+@login_required
+@require_POST
+def marcar_devolvido(request, pk):
+    item = get_object_or_404(Item, pk=pk)
+    if not item.pode_editar(request.user):
+        raise PermissionDenied("Somente o autor pode marcar este item como devolvido.")
+    if item.esta_finalizado:
+        messages.info(request, "Este item já foi finalizado.")
+    else:
+        item.alterar_status(Item.Status.DEVOLVIDO, request.user, "Marcado como devolvido pelo autor")
+        messages.success(request, "Item marcado como devolvido.")
+    return redirect(item.get_absolute_url())

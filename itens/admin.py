@@ -29,6 +29,16 @@ class ItemAdmin(admin.ModelAdmin):
     readonly_fields = ["criado_em", "atualizado_em"]
     inlines = [ComentarioInline, HistoricoStatusInline]
 
+    def save_model(self, request, obj, form, change):
+        if change and "status" in form.changed_data:
+            anterior = form.initial.get("status", "")
+            super().save_model(request, obj, form, change)
+            obj.registrar_historico(request.user, anterior, "Alterado pelo painel administrativo")
+            return
+        super().save_model(request, obj, form, change)
+        if not change:
+            obj.registrar_historico(request.user, "", "Item cadastrado pelo painel administrativo")
+
 
 @admin.register(Comentario)
 class ComentarioAdmin(admin.ModelAdmin):

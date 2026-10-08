@@ -96,3 +96,16 @@ class FormularioComentario(CamposBootstrapMixin, forms.ModelForm):
         if not texto:
             raise forms.ValidationError("Escreva alguma coisa antes de salvar.")
         return texto
+
+
+class FormularioStatus(CamposBootstrapMixin, forms.Form):
+    status = forms.ChoiceField(label="Novo status", choices=Item.Status.choices)
+    observacao = forms.CharField(
+        label="Observação",
+        required=False,
+        max_length=200,
+        widget=forms.TextInput(attrs={"placeholder": "Opcional. Ex.: entregue na secretaria"}),
+    )
+
+    def clean_observacao(self):
+        return " ".join(self.cleaned_data.get("observacao", "").split())

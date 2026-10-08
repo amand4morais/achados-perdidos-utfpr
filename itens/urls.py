@@ -8,6 +8,8 @@ urlpatterns = [
     path("itens/<int:pk>/", views.detalhes, name="detalhes"),
     path("itens/<int:pk>/editar/", views.editar, name="editar"),
     path("itens/<int:pk>/excluir/", views.excluir, name="excluir"),
+    path("itens/<int:pk>/status/", views.alterar_status, name="alterar_status"),
+    path("itens/<int:pk>/devolvido/", views.marcar_devolvido, name="marcar_devolvido"),
     path("itens/<int:pk>/comentarios/", views.comentar, name="comentar"),
     path("comentarios/<int:pk>/excluir/", views.excluir_comentario, name="excluir_comentario"),
 ]

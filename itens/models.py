@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.urls import reverse
 
@@ -74,6 +74,18 @@ class Item(models.Model):
             status_novo=self.status,
             observacao=observacao,
         )
+
+    def alterar_status(self, novo_status, usuario, observacao=""):
+        anterior = self.status
+        if anterior == novo_status:
+            return None
+        with transaction.atomic():
+            self.status = novo_status
+            self.save(update_fields=["status", "atualizado_em"])
+            return self.registrar_historico(usuario, anterior, observacao)
+
+    def pode_marcar_devolvido(self, usuario):
+        return self.pode_editar(usuario) and not self.esta_finalizado
 
     def pode_editar(self, usuario):
         return usuario.is_authenticated and usuario.pk == self.autor_id
