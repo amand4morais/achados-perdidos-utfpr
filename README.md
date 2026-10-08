@@ -61,11 +61,14 @@ O admin também acessa o painel do Django em `/admin`.
 
 ## Roteiro de teste
 
-1. Entre como `usuario@utfpr.br`, clique em **Novo Registro**, escolha **Perdido**, preencha os campos, envie uma foto e clique em **Cadastrar**. O item aparece na Home como **Perdido**.
-2. Repita escolhendo **Encontrado**. O item aparece como **Em verificação**.
-3. Abra um item, clique em **Adicionar Comentário**, escreva e clique em **Salvar**.
-4. Abra a **Garrafa térmica azul**, clique em **Reivindicar**, descreva a prova e envie.
-5. Saia, entre como `admin@utfpr.br`, clique em **Reivindicações** no topo e em **Aprovar**. O item vira **Devolvido**, e a mudança aparece no **Histórico de status**. Se clicar em **Recusar**, o item continua **Em verificação**.
+1. **Criar item Perdido:** entre como `usuario@utfpr.br`, clique em **Novo Registro**, escolha **Perdido**, preencha os campos, envie uma foto JPG ou PNG e clique em **Cadastrar**. O item aparece no topo da Home com o status **Perdido**.
+2. **Criar item Encontrado:** repita escolhendo **Encontrado**. O status inicial fica **Em verificação**.
+3. **Filtrar:** na Home, use os filtros de **Categoria** e **Status**.
+4. **Comentar:** abra qualquer item, clique no botão flutuante **Adicionar Comentário**, escreva e clique em **Salvar**.
+5. **Reivindicar:** ainda como usuário, abra o item **Garrafa térmica azul** (criado pelo admin), clique em **Reivindicar**, descreva a prova (a imagem é opcional) e envie.
+6. **Aprovar:** saia e entre como `admin@utfpr.br`. Clique em **Reivindicações** na barra do topo e depois em **Aprovar**. O item passa para **Devolvido**, e a mudança aparece no **Histórico de status** do item. Se clicar em **Recusar**, o item continua **Em verificação**.
+7. **Alterar status:** como admin, abra qualquer item e use o painel **Administração: alterar status**.
+8. **Moderar:** como admin, use o botão **Remover** em um comentário.
 
 ## Configuração (.env)
 
@@ -83,8 +86,22 @@ O arquivo `.env.example` já vem pronto para rodar localmente. Para produção, 
 
 ## Armazenamento das fotos
 
-- **Local (padrão):** `ARMAZENAMENTO=local`. As fotos ficam na pasta `media/`.
-- **Online (produção):** `ARMAZENAMENTO=s3`. Funciona com qualquer serviço compatível com S3 (AWS, Supabase Storage, Cloudflare R2, MinIO). Preencha `S3_BUCKET`, `S3_CHAVE_ACESSO`, `S3_CHAVE_SECRETA` e `S3_REGIAO`. Para serviços fora da AWS, informe também o `S3_ENDPOINT`. As URLs das fotos são assinadas e expiram em 1 hora.
+- **Local (padrão):** com `ARMAZENAMENTO=local`, as fotos ficam na pasta `media/`.
+- **Online (produção):** com `ARMAZENAMENTO=s3`, as fotos vão para um bucket compatível com S3 (AWS S3, Supabase Storage, Cloudflare R2 ou MinIO). Preencha no `.env`:
+
+```env
+ARMAZENAMENTO=s3
+S3_BUCKET=nome-do-bucket
+S3_CHAVE_ACESSO=sua-chave
+S3_CHAVE_SECRETA=sua-chave-secreta
+S3_REGIAO=sa-east-1
+S3_ENDPOINT=
+```
+
+- **`S3_ENDPOINT`:** deixe vazio para usar a AWS. Para outros serviços, informe o endpoint deles. No Supabase, por exemplo, é `https://<projeto>.supabase.co/storage/v1/s3`.
+- **URLs das fotos:** por padrão são assinadas e expiram em 1 hora (`S3_URL_VALIDADE_SEGUNDOS`). Para um bucket público com domínio próprio, use `S3_URL_ASSINADA=False` e `S3_DOMINIO_PUBLICO`.
+
+Nos dois casos, as fotos são validadas no backend: só JPG ou PNG, com até 5 MB, e o conteúdo real do arquivo é conferido.
 
 ## API (somente leitura)
 
@@ -152,14 +169,30 @@ As datas da API estão em UTC. Os erros também vêm em JSON:
 
 ## Decisões de arquitetura
 
-- **Django com templates, SQLite e Bootstrap via CDN:** sem build de front-end e sem servidor de banco. Instalar é só usar o `pip`.
-- **Autenticação nativa do Django:** senha com hash, proteção CSRF, sessão segura e login por e-mail.
-- **Regras no backend:** status inicial, permissões de autor e admin, validação das fotos (JPG/PNG até 5 MB) e uma reivindicação pendente por usuário em cada item.
-- **Histórico:** toda mudança de status gera um registro.
+- **Django com templates e Bootstrap via CDN:** sem build de front-end. Instalar é só usar o `pip`, o que reduz o risco de falhar na hora de testar.
+- **SQLite:** não exige instalar nem configurar banco.
+- **Autenticação nativa do Django:**
+  - senha com hash PBKDF2;
+  - sessão com cookie `HttpOnly` e expiração em 8 horas;
+  - proteção CSRF em todos os formulários;
+  - login por e-mail com um modelo de usuário próprio.
+- **Regras no backend:**
+  - status inicial: Encontrado vira "Em verificação" e Perdido vira "Perdido";
+  - permissões de autor e admin;
+  - validação de fotos;
+  - limite de uma reivindicação pendente por usuário em cada item.
+- **Histórico:** toda mudança de status gera um registro, inclusive as feitas pelo `/admin`.
+- **Reivindicação:**
+  - quando um item Encontrado recebe uma reivindicação, ele passa para "Em verificação";
+  - ao aprovar uma, as outras pendentes do mesmo item são recusadas.
 - **Datas:** gravadas em UTC e exibidas no horário de Brasília.
+- **Segurança:**
+  - os templates escapam o HTML (proteção contra XSS);
+  - páginas de erro amigáveis com `DEBUG=False`;
+  - logs em `logs/sistema.log` e `logs/erros.log`.
 
 ## Limitações
 
 - **CORS não foi configurado.** O front é servido pelo próprio Django, sem SPA separado.
-- **Arquivos estáticos e fotos locais só são servidos pelo Django com `DEBUG=True`.** Em produção, use um servidor web ou o storage S3.
-- **Não há envio de e-mail** para avisar o resultado das reivindicações. Ele aparece no próprio sistema.
+- **Arquivos estáticos e fotos locais só são servidos pelo Django com `DEBUG=True`.** Em produção, use `python manage.py collectstatic` com um servidor web, ou o storage S3 para as fotos.
+- **Não há envio de e-mail** para avisar o usuário quando a reivindicação é analisada. O resultado aparece no próprio sistema.
