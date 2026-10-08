@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Reivindicações{% endblock %}
+
+{% block conteudo %}
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h1 class="h4 mb-0">Reivindicações</h1>
+        <a href="{% url 'inicio' %}" class="btn btn-outline-dark">Voltar</a>
+    </div>
+
+    <nav class="mb-3" aria-label="Filtrar por situação">
+        <ul class="nav nav-pills abas-situacao">
+            {% for valor, rotulo in situacoes %}
+                <li class="nav-item">
+                    <a class="nav-link{% if situacao == valor %} active{% endif %}" href="?situacao={{ valor }}"{% if situacao == valor %} aria-current="page"{% endif %}>{{ rotulo }}s</a>
+                </li>
+            {% endfor %}
+            <li class="nav-item">
+                <a class="nav-link{% if not situacao %} active{% endif %}" href="?situacao=todas"{% if not situacao %} aria-current="page"{% endif %}>Todas</a>
+            </li>
+        </ul>
+    </nav>
+
+    {% for reivindicacao in pagina %}
+        {% include "parciais/reivindicacao.html" with voltar_para="lista" %}
+    {% empty %}
+        <div class="caixa-vazia">
+            <p class="mb-0">Nenhuma reivindicação {% if situacao %}{{ situacao }}{% endif %} no momento.</p>
+        </div>
+    {% endfor %}
+
+    {% if pagina.has_other_pages %}
+        <nav aria-label="Páginas" class="mt-4">
+            <ul class="pagination justify-content-center flex-wrap">
+                {% if pagina.has_previous %}
+                    <li class="page-item"><a class="page-link" href="{% querystring page=pagina.previous_page_number %}">Anterior</a></li>
+                {% endif %}
+                <li class="page-item active" aria-current="page"><span class="page-link">{{ pagina.number }} de {{ pagina.paginator.num_pages }}</span></li>
+                {% if pagina.has_next %}
+                    <li class="page-item"><a class="page-link" href="{% querystring page=pagina.next_page_number %}">Próxima</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'js/detalhes.js' %}"></script>
+{% endblock %}

@@ -4,7 +4,7 @@
     </label>
     {{ campo }}
     <div class="form-text" id="{{ campo.auto_id }}_helptext">{{ campo.help_text }}</div>
-    <div class="invalid-feedback d-block" id="aviso-foto" aria-live="polite"></div>
+    <div class="invalid-feedback d-block" id="aviso-{{ campo.auto_id }}" data-aviso-foto aria-live="polite"></div>
     {% for erro in campo.errors %}
         <div class="invalid-feedback d-block">{{ erro }}</div>
     {% endfor %}

@@ -4,7 +4,7 @@ from django import forms
 
 from contas.forms import CamposBootstrapMixin
 
-from .models import Comentario, Item
+from .models import Comentario, Item, Reivindicacao
 
 EXTENSOES_PERMITIDAS = {".jpg", ".jpeg", ".png"}
 TIPOS_PERMITIDOS = {"image/jpeg", "image/png", "image/pjpeg"}
@@ -109,3 +109,46 @@ class FormularioStatus(CamposBootstrapMixin, forms.Form):
 
     def clean_observacao(self):
         return " ".join(self.cleaned_data.get("observacao", "").split())
+
+
+class FormularioReivindicacao(CamposBootstrapMixin, forms.ModelForm):
+    class Meta:
+        model = Reivindicacao
+        fields = ["prova", "imagem"]
+        widgets = {
+            "prova": forms.Textarea(attrs={
+                "rows": 4,
+                "maxlength": 500,
+                "placeholder": "Descreva algo que só o dono saberia: marca, detalhes, conteúdo, onde perdeu...",
+            }),
+            "imagem": forms.FileInput(attrs={"accept": "image/jpeg,image/png"}),
+        }
+        help_texts = {
+            "prova": "Até 500 caracteres.",
+            "imagem": "Opcional. Uma foto sua com o item, nota fiscal etc. JPG ou PNG até 5 MB.",
+        }
+
+    def __init__(self, *args, item=None, usuario=None, **kwargs):
+        self.item = item
+        self.usuario = usuario
+        super().__init__(*args, **kwargs)
+
+    def clean_prova(self):
+        prova = self.cleaned_data["prova"].strip()
+        if len(prova) < 10:
+            raise forms.ValidationError("Descreva com um pouco mais de detalhe (mínimo de 10 caracteres).")
+        return prova
+
+    def clean_imagem(self):
+        return conferir_arquivo_imagem(self.cleaned_data.get("imagem"))
+
+    def clean(self):
+        dados = super().clean()
+        if self.item and self.usuario:
+            if self.usuario.pk == self.item.autor_id:
+                raise forms.ValidationError("Você não pode reivindicar um item que você mesmo registrou.")
+            if not self.item.aceita_reivindicacao:
+                raise forms.ValidationError("Este item não está disponível para reivindicação.")
+            if self.item.reivindicacao_pendente_de(self.usuario):
+                raise forms.ValidationError("Você já tem uma reivindicação pendente para este item.")
+        return dados

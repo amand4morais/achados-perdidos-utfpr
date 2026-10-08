@@ -1,0 +1,44 @@
+<article class="cartao reivindicacao reivindicacao-{{ reivindicacao.situacao }} p-3 mb-2">
+    <div class="d-flex flex-wrap justify-content-between gap-2">
+        <div>
+            {% if voltar_para == "lista" %}
+                <a href="{% url 'detalhes' reivindicacao.item.pk %}" class="fw-semibold">{{ reivindicacao.item.titulo }}</a>
+                <div class="small text-secondary">Pedido por {{ reivindicacao.solicitante.nome }} ({{ reivindicacao.solicitante.email }})</div>
+            {% else %}
+                <strong>{{ reivindicacao.solicitante.nome }}</strong>
+                <span class="small text-secondary">({{ reivindicacao.solicitante.email }})</span>
+            {% endif %}
+            <div class="small text-secondary">
+                Enviada em <time datetime="{{ reivindicacao.criado_em|date:'c' }}">{{ reivindicacao.criado_em|date:"d/m/Y" }} às {{ reivindicacao.criado_em|date:"H:i" }}</time>
+            </div>
+        </div>
+        <span class="selo selo-reivindicacao-{{ reivindicacao.situacao }} align-self-start">{{ reivindicacao.get_situacao_display }}</span>
+    </div>
+
+    <p class="mt-2 mb-2 texto-comentario"><span class="fw-semibold">Prova:</span> {{ reivindicacao.prova|linebreaksbr }}</p>
+
+    {% if reivindicacao.imagem %}
+        <a href="{{ reivindicacao.imagem.url }}" target="_blank" rel="noopener" class="d-inline-block mb-2">
+            <img src="{{ reivindicacao.imagem.url }}" alt="Imagem enviada como prova por {{ reivindicacao.solicitante.nome }}" class="foto-miniatura">
+        </a>
+    {% endif %}
+
+    {% if reivindicacao.esta_pendente %}
+        <div class="d-flex flex-wrap gap-2">
+            <form method="post" action="{% url 'aprovar_reivindicacao' reivindicacao.pk %}" data-confirmar="Aprovar a reivindicação de {{ reivindicacao.solicitante.nome }}? O item será marcado como Devolvido.">
+                {% csrf_token %}
+                <input type="hidden" name="voltar_para" value="{{ voltar_para }}">
+                <button type="submit" class="btn btn-sm btn-success">Aprovar</button>
+            </form>
+            <form method="post" action="{% url 'recusar_reivindicacao' reivindicacao.pk %}" data-confirmar="Recusar a reivindicação de {{ reivindicacao.solicitante.nome }}?">
+                {% csrf_token %}
+                <input type="hidden" name="voltar_para" value="{{ voltar_para }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Recusar</button>
+            </form>
+        </div>
+    {% elif reivindicacao.analisada_por %}
+        <div class="small text-secondary">
+            {{ reivindicacao.get_situacao_display }} por {{ reivindicacao.analisada_por.nome }} em {{ reivindicacao.analisada_em|date:"d/m/Y H:i" }}
+        </div>
+    {% endif %}
+</article>

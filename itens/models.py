@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models, transaction
 from django.db.models import Q
 from django.urls import reverse
+from django.utils import timezone
 
 from .validadores import validar_imagem
 
@@ -91,6 +92,23 @@ class Item(models.Model):
         return usuario.is_authenticated and usuario.pk == self.autor_id
 
     @property
+    def aceita_reivindicacao(self):
+        return self.tipo == self.Tipo.ENCONTRADO and self.status in (self.Status.ENCONTRADO, self.Status.EM_VERIFICACAO)
+
+    def reivindicacao_pendente_de(self, usuario):
+        if not usuario.is_authenticated:
+            return None
+        return self.reivindicacoes.filter(solicitante=usuario, situacao=Reivindicacao.Situacao.PENDENTE).first()
+
+    def pode_reivindicar(self, usuario):
+        return (
+            usuario.is_authenticated
+            and usuario.pk != self.autor_id
+            and self.aceita_reivindicacao
+            and self.reivindicacao_pendente_de(usuario) is None
+        )
+
+    @property
     def foi_encontrado(self):
         return self.tipo == self.Tipo.ENCONTRADO
 
@@ -166,6 +184,36 @@ class Reivindicacao(models.Model):
 
     def __str__(self):
         return f"{self.solicitante} reivindica {self.item}"
+
+    @property
+    def esta_pendente(self):
+        return self.situacao == self.Situacao.PENDENTE
+
+    def aprovar(self, admin):
+        with transaction.atomic():
+            self.situacao = self.Situacao.APROVADA
+            self.analisada_por = admin
+            self.analisada_em = timezone.now()
+            self.save(update_fields=["situacao", "analisada_por", "analisada_em"])
+            outras = self.item.reivindicacoes.filter(situacao=self.Situacao.PENDENTE).exclude(pk=self.pk)
+            outras.update(situacao=self.Situacao.RECUSADA, analisada_por=admin, analisada_em=self.analisada_em)
+            self.item.alterar_status(
+                Item.Status.DEVOLVIDO,
+                admin,
+                f"Reivindicação de {self.solicitante.nome} aprovada",
+            )
+
+    def recusar(self, admin):
+        with transaction.atomic():
+            self.situacao = self.Situacao.RECUSADA
+            self.analisada_por = admin
+            self.analisada_em = timezone.now()
+            self.save(update_fields=["situacao", "analisada_por", "analisada_em"])
+            self.item.alterar_status(
+                Item.Status.EM_VERIFICACAO,
+                admin,
+                f"Reivindicação de {self.solicitante.nome} recusada",
+            )
 
 
 class HistoricoStatus(models.Model):

@@ -2,10 +2,11 @@
     const TAMANHO_MAXIMO = 5 * 1024 * 1024;
     const TIPOS_ACEITOS = ["image/jpeg", "image/png"];
 
-    const campoFoto = document.getElementById("id_foto");
-    const avisoFoto = document.getElementById("aviso-foto");
-
-    if (campoFoto && avisoFoto) {
+    document.querySelectorAll("input[type=file][accept]").forEach(function (campoFoto) {
+        const avisoFoto = document.getElementById("aviso-" + campoFoto.id);
+        if (!avisoFoto) {
+            return;
+        }
         campoFoto.addEventListener("change", function () {
             avisoFoto.textContent = "";
             campoFoto.classList.remove("is-invalid");
@@ -25,7 +26,7 @@
                 campoFoto.value = "";
             }
         });
-    }
+    });
 
     const botaoLocalizacao = document.getElementById("botao-localizacao");
     const campoLocal = document.getElementById("id_local");

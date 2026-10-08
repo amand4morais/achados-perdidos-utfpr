@@ -13,8 +13,13 @@
     <nav class="barra-usuario" aria-label="Conta">
         <div class="container d-flex justify-content-end align-items-center gap-3 py-1">
             {% if user.is_authenticated %}
-                <span>
-                    {{ user.get_short_name }}
+                {% if user.eh_admin %}
+                    <a href="{% url 'reivindicacoes' %}" class="barra-usuario-link text-nowrap">
+                        Reivindicações{% if total_reivindicacoes_pendentes %} <span class="badge text-bg-warning">{{ total_reivindicacoes_pendentes }}<span class="visually-hidden"> pendentes</span></span>{% endif %}
+                    </a>
+                {% endif %}
+                <span class="text-nowrap">
+                    <span class="barra-usuario-nome">{{ user.get_short_name }}</span>
                     {% if user.eh_admin %}<span class="badge text-bg-warning ms-1">Admin</span>{% endif %}
                 </span>
                 <form method="post" action="{% url 'sair' %}" class="m-0">
