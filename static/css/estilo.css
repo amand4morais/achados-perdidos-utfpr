@@ -345,6 +345,16 @@ a {
     }
 }
 
+.codigo-erro {
+    display: inline-block;
+    background: var(--amarelo);
+    color: var(--preto);
+    font-weight: 700;
+    font-size: 1.5rem;
+    padding: .1rem .9rem;
+    border-radius: .375rem;
+}
+
 .rodape {
     background: var(--preto);
     color: #cfcfca;

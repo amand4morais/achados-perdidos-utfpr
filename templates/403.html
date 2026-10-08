@@ -1,0 +1,7 @@
+{% extends "erro.html" %}
+
+{% block titulo_erro %}Acesso negado{% endblock %}
+{% block codigo %}403{% endblock %}
+{% block titulo_pagina %}Você não tem permissão para isso{% endblock %}
+{% block mensagem %}{% if exception %}{{ exception }}{% else %}Esta ação é permitida apenas para o autor do registro ou para administradores.{% endif %}{% endblock %}
+{% block acao_extra %}{% if not user.is_authenticated %}<a href="{% url 'entrar' %}" class="btn btn-outline-dark">Entrar</a>{% endif %}{% endblock %}

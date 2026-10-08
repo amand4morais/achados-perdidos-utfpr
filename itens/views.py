@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -15,6 +17,8 @@ from .forms import (
     FormularioStatus,
 )
 from .models import Comentario, Item, Reivindicacao
+
+logger = logging.getLogger(__name__)
 
 ITENS_POR_PAGINA = 12
 
@@ -49,6 +53,7 @@ def novo_registro(request):
                 item.status = Item.status_inicial_para(item.tipo)
                 item.save()
                 item.registrar_historico(request.user, "", "Item cadastrado")
+            logger.info("Item %s cadastrado por %s", item.pk, request.user.email)
             messages.success(request, "Registro cadastrado com sucesso.")
             return redirect("inicio")
     else:
@@ -102,6 +107,7 @@ def excluir_comentario(request, pk):
     if not request.user.eh_admin:
         raise PermissionDenied("Somente administradores podem moderar comentários.")
     item = comentario.item
+    logger.info("Comentário %s do item %s removido por %s", comentario.pk, item.pk, request.user.email)
     comentario.delete()
     messages.success(request, "Comentário removido.")
     return redirect(f"{item.get_absolute_url()}#comentarios")
@@ -121,6 +127,7 @@ def editar(request, pk):
             item = form.save()
             if "foto" in form.changed_data and foto_antiga and foto_antiga != item.foto.name:
                 item.foto.storage.delete(foto_antiga)
+            logger.info("Item %s editado por %s", item.pk, request.user.email)
             messages.success(request, "Registro atualizado com sucesso.")
             return redirect("detalhes", pk=item.pk)
     else:
@@ -134,6 +141,7 @@ def excluir(request, pk):
     item = get_object_or_404(Item, pk=pk)
     if not item.pode_editar(request.user):
         raise PermissionDenied("Somente o autor pode excluir este item.")
+    logger.info("Item %s (%s) excluído por %s", item.pk, item.titulo, request.user.email)
     item.delete()
     messages.success(request, "Registro excluído.")
     return redirect("inicio")
@@ -150,6 +158,7 @@ def alterar_status(request, pk):
         return renderizar_detalhes(request, item, form_status=form)
     novo_status = form.cleaned_data["status"]
     if item.alterar_status(novo_status, request.user, form.cleaned_data["observacao"]):
+        logger.info("Status do item %s alterado para %s por %s", item.pk, novo_status, request.user.email)
         messages.success(request, f"Status alterado para {item.get_status_display()}.")
     else:
         messages.info(request, "O item já estava com esse status.")
@@ -166,6 +175,7 @@ def marcar_devolvido(request, pk):
         messages.info(request, "Este item já foi finalizado.")
     else:
         item.alterar_status(Item.Status.DEVOLVIDO, request.user, "Marcado como devolvido pelo autor")
+        logger.info("Item %s marcado como devolvido pelo autor %s", item.pk, request.user.email)
         messages.success(request, "Item marcado como devolvido.")
     return redirect(item.get_absolute_url())
 
@@ -188,6 +198,7 @@ def reivindicar(request, pk):
         reivindicacao.save()
         if item.status == Item.Status.ENCONTRADO:
             item.alterar_status(Item.Status.EM_VERIFICACAO, request.user, "Reivindicação recebida")
+    logger.info("Reivindicação %s enviada por %s para o item %s", reivindicacao.pk, request.user.email, item.pk)
     messages.success(request, "Reivindicação enviada. Um administrador vai analisar a sua prova.")
     return redirect(item.get_absolute_url())
 
@@ -218,9 +229,11 @@ def analisar_reivindicacao(request, pk, aprovar):
         messages.info(request, "Esta reivindicação já foi analisada.")
     elif aprovar:
         reivindicacao.aprovar(request.user)
+        logger.info("Reivindicação %s aprovada por %s", reivindicacao.pk, request.user.email)
         messages.success(request, f"Reivindicação aprovada. O item foi marcado como devolvido para {reivindicacao.solicitante.nome}.")
     else:
         reivindicacao.recusar(request.user)
+        logger.info("Reivindicação %s recusada por %s", reivindicacao.pk, request.user.email)
         messages.success(request, "Reivindicação recusada. O item continua em verificação.")
     destino = request.POST.get("voltar_para")
     if destino == "lista":
