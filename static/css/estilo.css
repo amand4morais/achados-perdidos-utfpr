@@ -33,8 +33,8 @@ main {
 }
 
 .topo {
-    background: var(--amarelo);
-    border-bottom: 4px solid var(--preto);
+    background: #fff;
+    border-bottom: 5px solid var(--amarelo);
 }
 
 .topo-marca {
@@ -45,17 +45,16 @@ main {
     text-decoration: none;
 }
 
-.topo-sigla {
-    background: var(--preto);
-    color: var(--amarelo);
-    font-weight: 700;
-    padding: .15rem .5rem;
-    letter-spacing: .05em;
+.topo-logo {
+    height: 48px;
+    width: auto;
 }
 
 .topo-titulo {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     font-weight: 700;
+    border-left: 2px solid var(--cinza-borda);
+    padding-left: .75rem;
 }
 
 .topo-marca:hover {
@@ -88,11 +87,32 @@ button:focus-visible,
 }
 
 @media (max-width: 575.98px) {
-    .topo-titulo {
-        font-size: 1.1rem;
+    .topo-logo {
+        height: 34px;
     }
 
-    .topo-sigla {
-        display: none;
+    .topo-marca {
+        gap: .5rem;
+    }
+
+    .topo-titulo {
+        font-size: 1rem;
+        padding-left: .5rem;
+        line-height: 1.2;
+    }
+
+    .topo .btn {
+        font-size: .875rem;
+        padding: .375rem .6rem;
+    }
+}
+
+@media (max-width: 359.98px) {
+    .topo-logo {
+        height: 28px;
+    }
+
+    .topo-titulo {
+        font-size: .9rem;
     }
 }
