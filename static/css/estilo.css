@@ -1,0 +1,98 @@
+:root {
+    --amarelo: #ffcc00;
+    --amarelo-claro: #fff4c2;
+    --preto: #1d1d1b;
+    --cinza-fundo: #f5f5f3;
+    --cinza-borda: #deded9;
+}
+
+body {
+    background: var(--cinza-fundo);
+    color: var(--preto);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.pular-conteudo {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: var(--preto);
+    color: #fff;
+    padding: .5rem 1rem;
+    z-index: 1000;
+}
+
+.pular-conteudo:focus {
+    left: 0;
+}
+
+.topo {
+    background: var(--amarelo);
+    border-bottom: 4px solid var(--preto);
+}
+
+.topo-marca {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    color: var(--preto);
+    text-decoration: none;
+}
+
+.topo-sigla {
+    background: var(--preto);
+    color: var(--amarelo);
+    font-weight: 700;
+    padding: .15rem .5rem;
+    letter-spacing: .05em;
+}
+
+.topo-titulo {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.topo-marca:hover {
+    color: var(--preto);
+}
+
+.caixa-vazia {
+    background: #fff;
+    border: 1px dashed var(--cinza-borda);
+    border-radius: .5rem;
+    padding: 3rem 1rem;
+    text-align: center;
+    color: #5c5c58;
+}
+
+.rodape {
+    background: var(--preto);
+    color: #cfcfca;
+    font-size: .9rem;
+}
+
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+.form-control:focus,
+.form-select:focus {
+    outline: 3px solid var(--preto);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 .2rem var(--amarelo);
+}
+
+@media (max-width: 575.98px) {
+    .topo-titulo {
+        font-size: 1.1rem;
+    }
+
+    .topo-sigla {
+        display: none;
+    }
+}
