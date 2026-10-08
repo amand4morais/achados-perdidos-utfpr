@@ -32,6 +32,50 @@ main {
     left: 0;
 }
 
+.barra-usuario {
+    background: var(--preto);
+    color: #f0f0eb;
+    font-size: .875rem;
+}
+
+.barra-usuario-link,
+.barra-usuario-link:visited {
+    color: var(--amarelo);
+    font-size: .875rem;
+    text-decoration: none;
+}
+
+.barra-usuario-link:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.cartao {
+    background: #fff;
+    border: 1px solid var(--cinza-borda);
+    border-radius: .5rem;
+}
+
+.btn-amarelo {
+    --bs-btn-color: var(--preto);
+    --bs-btn-bg: var(--amarelo);
+    --bs-btn-border-color: var(--amarelo);
+    --bs-btn-hover-color: var(--preto);
+    --bs-btn-hover-bg: #e6b800;
+    --bs-btn-hover-border-color: #e6b800;
+    --bs-btn-active-color: var(--preto);
+    --bs-btn-active-bg: #d1a700;
+    --bs-btn-active-border-color: #d1a700;
+    --bs-btn-disabled-color: var(--preto);
+    --bs-btn-disabled-bg: var(--amarelo);
+    --bs-btn-disabled-border-color: var(--amarelo);
+    font-weight: 600;
+}
+
+a {
+    color: #5a4700;
+}
+
 .topo {
     background: #fff;
     border-bottom: 5px solid var(--amarelo);

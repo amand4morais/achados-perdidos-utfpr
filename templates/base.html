@@ -10,6 +10,24 @@
 <body>
     <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
 
+    <nav class="barra-usuario" aria-label="Conta">
+        <div class="container d-flex justify-content-end align-items-center gap-3 py-1">
+            {% if user.is_authenticated %}
+                <span>
+                    {{ user.get_short_name }}
+                    {% if user.eh_admin %}<span class="badge text-bg-warning ms-1">Admin</span>{% endif %}
+                </span>
+                <form method="post" action="{% url 'sair' %}" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link barra-usuario-link p-0">Sair</button>
+                </form>
+            {% else %}
+                <a href="{% url 'entrar' %}" class="barra-usuario-link">Entrar</a>
+                <a href="{% url 'cadastrar' %}" class="barra-usuario-link">Cadastrar</a>
+            {% endif %}
+        </div>
+    </nav>
+
     <header class="topo">
         <div class="container d-flex align-items-center justify-content-between gap-3 py-2">
             <a href="{% url 'inicio' %}" class="topo-marca">

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block titulo %}Cadastro{% endblock %}
+
+{% block conteudo %}
+    <div class="row justify-content-center">
+        <div class="col-sm-10 col-md-7 col-lg-5">
+            <div class="cartao p-4">
+                <h1 class="h3 mb-4">Criar conta</h1>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% include "parciais/campo.html" with campo=form.nome %}
+                    {% include "parciais/campo.html" with campo=form.email %}
+                    {% include "parciais/campo.html" with campo=form.password1 %}
+                    {% include "parciais/campo.html" with campo=form.password2 %}
+                    <button type="submit" class="btn btn-amarelo w-100">Cadastrar</button>
+                </form>
+
+                <p class="mt-4 mb-0 text-center">
+                    Já tem conta? <a href="{% url 'entrar' %}">Entrar</a>
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
